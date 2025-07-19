@@ -1,12 +1,73 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from 'react';
+import { Header } from '@/components/Header';
+import { CourseGrid } from '@/components/CourseGrid';
+import { CourseView } from '@/components/CourseView';
+import { Footer } from '@/components/Footer';
+
+export interface Course {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  difficulty: 'Beginner' | 'Advanced';
+  lessons: Lesson[];
+}
+
+export interface Lesson {
+  id: string;
+  title: string;
+  content: string;
+  codeBlocks?: CodeBlock[];
+  completed?: boolean;
+}
+
+export interface CodeBlock {
+  id: string;
+  language: string;
+  code: string;
+}
 
 const Index = () => {
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+
+  const handleCourseSelect = (course: Course) => {
+    setSelectedCourse(course);
+    setSelectedLesson(course.lessons[0] || null);
+  };
+
+  const handleBackToHome = () => {
+    setSelectedCourse(null);
+    setSelectedLesson(null);
+  };
+
+  const handleLessonSelect = (lesson: Lesson) => {
+    setSelectedLesson(lesson);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex flex-col">
+      <Header 
+        selectedCourse={selectedCourse} 
+        onBackToHome={handleBackToHome}
+      />
+      
+      <main className="flex-1">
+        {!selectedCourse ? (
+          <div className="animate-fade-in">
+            <CourseGrid onCourseSelect={handleCourseSelect} />
+          </div>
+        ) : (
+          <CourseView
+            course={selectedCourse}
+            selectedLesson={selectedLesson}
+            onLessonSelect={handleLessonSelect}
+          />
+        )}
+      </main>
+      
+      <Footer />
     </div>
   );
 };
