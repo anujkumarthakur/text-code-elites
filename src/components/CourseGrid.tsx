@@ -1,5 +1,4 @@
-
-import { Code, Zap, Server, Rocket, Layers } from 'lucide-react';
+import { Code, Zap, Server, Rocket, Layers, BookOpen, Mail } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Course } from '@/pages/Index';
@@ -717,7 +716,9 @@ const iconComponents = {
   Zap, 
   Server,
   Rocket,
-  Layers
+  Layers,
+  BookOpen,
+  Mail
 };
 
 export function CourseGrid({ onCourseSelect }: CourseGridProps) {
