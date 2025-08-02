@@ -5,6 +5,21 @@ import { CourseGrid } from '@/components/CourseGrid';
 import { CourseView } from '@/components/CourseView';
 import { Footer } from '@/components/Footer';
 
+export interface ContentBlock {
+  id: string;
+  type: 'text' | 'code';
+  content: string;
+  language?: string;
+}
+
+export interface Lesson {
+  id: string;
+  title: string;
+  content: string;
+  codeBlocks: ContentBlock[];
+  completed?: boolean;
+}
+
 export interface Course {
   id: string;
   title: string;
@@ -12,16 +27,11 @@ export interface Course {
   icon: string;
   difficulty: 'Beginner' | 'Advanced';
   lessons: Lesson[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface Lesson {
-  id: string;
-  title: string;
-  content: string;
-  codeBlocks?: CodeBlock[];
-  completed?: boolean;
-}
-
+// Legacy interface for backward compatibility
 export interface CodeBlock {
   id: string;
   language: string;

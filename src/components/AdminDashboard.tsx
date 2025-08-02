@@ -1,58 +1,28 @@
 
-import { useState } from 'react';
-import { Plus, Edit, Trash2, Save, Eye, Code, FileText, Users, BarChart3, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Save, Eye, Code, FileText, Users, BarChart3, X, Download, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-
-interface ContentBlock {
-  id: string;
-  type: 'text' | 'code';
-  content: string;
-  language?: string;
-}
-
-interface Lesson {
-  id: string;
-  title: string;
-  content: string;
-  codeBlocks: ContentBlock[];
-}
-
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  difficulty: 'Beginner' | 'Advanced';
-  lessons: Lesson[];
-}
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { dataService, Course, Lesson, ContentBlock } from '@/services/dataService';
+import { useToast } from '@/hooks/use-toast';
 
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'lessons' | 'users'>('overview');
   const [showEditor, setShowEditor] = useState(false);
+  const [showCourseEditor, setShowCourseEditor] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const { toast } = useToast();
 
-  // Mock data - in real app, this would come from backend
-  const [courses, setCourses] = useState<Course[]>([
-    {
-      id: '1',
-      title: 'Go Fundamentals',
-      description: 'Master the fundamentals of Go programming language',
-      difficulty: 'Beginner',
-      lessons: [
-        {
-          id: '1-1',
-          title: 'Introduction to Go',
-          content: 'Welcome to Go programming...',
-          codeBlocks: []
-        }
-      ]
-    }
-  ]);
+  // Load courses from data service
+  const [courses, setCourses] = useState<Course[]>([]);
 
   const [newLesson, setNewLesson] = useState<Partial<Lesson>>({
     title: '',
@@ -60,7 +30,25 @@ export function AdminDashboard() {
     codeBlocks: []
   });
 
+  const [newCourse, setNewCourse] = useState<Partial<Course>>({
+    title: '',
+    description: '',
+    difficulty: 'Beginner',
+    icon: 'Code',
+    lessons: []
+  });
+
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([]);
+
+  // Load courses on component mount
+  useEffect(() => {
+    loadCourses();
+  }, []);
+
+  const loadCourses = () => {
+    const loadedCourses = dataService.getCourses();
+    setCourses(loadedCourses);
+  };
 
   const addContentBlock = (type: 'text' | 'code') => {
     const newBlock: ContentBlock = {
@@ -87,32 +75,168 @@ export function AdminDashboard() {
   };
 
   const saveLesson = () => {
-    if (!selectedCourse || !newLesson.title) return;
+    if (!selectedCourse || !newLesson.title) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const lesson: Lesson = {
-      id: Date.now().toString(),
-      title: newLesson.title!,
-      content: newLesson.content || '',
-      codeBlocks: contentBlocks
-    };
+    if (editingLesson) {
+      // Update existing lesson
+      const updatedLesson = dataService.updateLesson(
+        selectedCourse.id,
+        editingLesson.id,
+        {
+          title: newLesson.title!,
+          content: newLesson.content || '',
+          codeBlocks: contentBlocks
+        }
+      );
+      
+      if (updatedLesson) {
+        toast({
+          title: "Success",
+          description: "Lesson updated successfully",
+        });
+        loadCourses();
+      }
+    } else {
+      // Add new lesson
+      const newLessonData = dataService.addLesson(selectedCourse.id, {
+        title: newLesson.title!,
+        content: newLesson.content || '',
+        codeBlocks: contentBlocks
+      });
 
-    setCourses(courses => 
-      courses.map(course => 
-        course.id === selectedCourse.id
-          ? { ...course, lessons: [...course.lessons, lesson] }
-          : course
-      )
-    );
+      if (newLessonData) {
+        toast({
+          title: "Success",
+          description: "Lesson created successfully",
+        });
+        loadCourses();
+      }
+    }
 
     // Reset form
     setNewLesson({ title: '', content: '', codeBlocks: [] });
     setContentBlocks([]);
     setShowEditor(false);
+    setEditingLesson(null);
+  };
+
+  const saveCourse = () => {
+    if (!newCourse.title || !newCourse.description) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (editingCourse) {
+      // Update existing course
+      const updatedCourse = dataService.updateCourse(editingCourse.id, {
+        title: newCourse.title!,
+        description: newCourse.description!,
+        difficulty: newCourse.difficulty!,
+        icon: newCourse.icon!
+      });
+      
+      if (updatedCourse) {
+        toast({
+          title: "Success",
+          description: "Course updated successfully",
+        });
+        loadCourses();
+      }
+    } else {
+      // Add new course
+      const newCourseData = dataService.addCourse({
+        title: newCourse.title!,
+        description: newCourse.description!,
+        difficulty: newCourse.difficulty!,
+        icon: newCourse.icon!,
+        lessons: []
+      });
+
+      toast({
+        title: "Success",
+        description: "Course created successfully",
+      });
+      loadCourses();
+    }
+
+    // Reset form
+    setNewCourse({
+      title: '',
+      description: '',
+      difficulty: 'Beginner',
+      icon: 'Code',
+      lessons: []
+    });
+    setShowCourseEditor(false);
+    setEditingCourse(null);
+  };
+
+  const deleteCourse = (courseId: string) => {
+    if (confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
+      const success = dataService.deleteCourse(courseId);
+      if (success) {
+        toast({
+          title: "Success",
+          description: "Course deleted successfully",
+        });
+        loadCourses();
+        if (selectedCourse?.id === courseId) {
+          setSelectedCourse(null);
+        }
+      }
+    }
+  };
+
+  const deleteLesson = (courseId: string, lessonId: string) => {
+    if (confirm('Are you sure you want to delete this lesson? This action cannot be undone.')) {
+      const success = dataService.deleteLesson(courseId, lessonId);
+      if (success) {
+        toast({
+          title: "Success",
+          description: "Lesson deleted successfully",
+        });
+        loadCourses();
+      }
+    }
+  };
+
+  const editCourse = (course: Course) => {
+    setEditingCourse(course);
+    setNewCourse({
+      title: course.title,
+      description: course.description,
+      difficulty: course.difficulty,
+      icon: course.icon,
+      lessons: course.lessons
+    });
+    setShowCourseEditor(true);
+  };
+
+  const editLesson = (lesson: Lesson) => {
+    setEditingLesson(lesson);
+    setNewLesson({
+      title: lesson.title,
+      content: lesson.content,
+      codeBlocks: lesson.codeBlocks
+    });
+    setContentBlocks([...lesson.codeBlocks]);
+    setShowEditor(true);
   };
 
   const stats = [
-    { name: 'Total Courses', value: '5', icon: FileText, color: 'text-blue-600' },
-    { name: 'Total Lessons', value: '47', icon: Code, color: 'text-green-600' },
+    { name: 'Total Courses', value: courses.length.toString(), icon: FileText, color: 'text-blue-600' },
+    { name: 'Total Lessons', value: courses.reduce((total, course) => total + course.lessons.length, 0).toString(), icon: Code, color: 'text-green-600' },
     { name: 'Active Users', value: '1,234', icon: Users, color: 'text-purple-600' },
     { name: 'Completion Rate', value: '78%', icon: BarChart3, color: 'text-orange-600' }
   ];
@@ -233,10 +357,31 @@ export function AdminDashboard() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Manage Courses</h2>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Course
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    const data = dataService.exportData();
+                    const blob = new Blob([data], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'courses-data.json';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                </Button>
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setShowCourseEditor(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Course
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -267,10 +412,22 @@ export function AdminDashboard() {
                           setActiveTab('lessons');
                         }}
                       >
+                        <Eye className="w-3 h-3 mr-1" />
+                        Lessons
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => editCourse(course)}
+                      >
                         <Edit className="w-3 h-3 mr-1" />
                         Edit
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => deleteCourse(course.id)}
+                      >
                         <Trash2 className="w-3 h-3 mr-1" />
                         Delete
                       </Button>
@@ -322,11 +479,19 @@ export function AdminDashboard() {
                           </div>
                         </div>
                         <div className="flex space-x-2">
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => editLesson(lesson)}
+                          >
                             <Edit className="w-3 h-3 mr-1" />
                             Edit
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => deleteLesson(selectedCourse.id, lesson.id)}
+                          >
                             <Trash2 className="w-3 h-3 mr-1" />
                             Delete
                           </Button>
@@ -379,12 +544,17 @@ export function AdminDashboard() {
           <div className="bg-white dark:bg-slate-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Create New Lesson
+                {editingLesson ? 'Edit Lesson' : 'Create New Lesson'}
               </h3>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowEditor(false)}
+                onClick={() => {
+                  setShowEditor(false);
+                  setEditingLesson(null);
+                  setNewLesson({ title: '', content: '', codeBlocks: [] });
+                  setContentBlocks([]);
+                }}
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -497,6 +667,135 @@ export function AdminDashboard() {
               >
                 <Save className="w-4 h-4 mr-2" />
                 Save Lesson
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Course Editor Modal */}
+      {showCourseEditor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {editingCourse ? 'Edit Course' : 'Create New Course'}
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowCourseEditor(false);
+                  setEditingCourse(null);
+                  setNewCourse({
+                    title: '',
+                    description: '',
+                    difficulty: 'Beginner',
+                    icon: 'Code',
+                    lessons: []
+                  });
+                }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              {/* Course Title */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Course Title *
+                </label>
+                <Input
+                  type="text"
+                  value={newCourse.title || ''}
+                  onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
+                  placeholder="Enter course title..."
+                />
+              </div>
+
+              {/* Course Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Course Description *
+                </label>
+                <Textarea
+                  value={newCourse.description || ''}
+                  onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
+                  placeholder="Enter course description..."
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              {/* Course Difficulty */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Difficulty Level
+                </label>
+                <Select
+                  value={newCourse.difficulty || 'Beginner'}
+                  onValueChange={(value: 'Beginner' | 'Advanced') => 
+                    setNewCourse({ ...newCourse, difficulty: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select difficulty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Beginner">Beginner</SelectItem>
+                    <SelectItem value="Advanced">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Course Icon */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Course Icon
+                </label>
+                <Select
+                  value={newCourse.icon || 'Code'}
+                  onValueChange={(value) => setNewCourse({ ...newCourse, icon: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select icon" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Code">Code</SelectItem>
+                    <SelectItem value="Zap">Zap</SelectItem>
+                    <SelectItem value="Server">Server</SelectItem>
+                    <SelectItem value="Rocket">Rocket</SelectItem>
+                    <SelectItem value="Layers">Layers</SelectItem>
+                    <SelectItem value="BookOpen">BookOpen</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 dark:border-slate-700">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowCourseEditor(false);
+                  setEditingCourse(null);
+                  setNewCourse({
+                    title: '',
+                    description: '',
+                    difficulty: 'Beginner',
+                    icon: 'Code',
+                    lessons: []
+                  });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={saveCourse}
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={!newCourse.title || !newCourse.description}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {editingCourse ? 'Update Course' : 'Create Course'}
               </Button>
             </div>
           </div>
