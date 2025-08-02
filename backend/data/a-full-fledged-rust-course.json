@@ -1,0 +1,33 @@
+{
+  "id": "1754142725",
+  "title": "A Full-Fledged Rust Course",
+  "description": "Welcome to this comprehensive course on Rust programming! Rust is a systems programming language focused on safety, speed, and concurrency. It's known for its strong type system, ownership model, and performance, making it a favorite for developing operating systems, game engines, web services, and more.\n\nThis course is structured into modules, each covering a key aspect of Rust. We'll start with the basics and gradually move to more advanced topics.",
+  "icon": "Code",
+  "difficulty": "Beginner",
+  "lessons": [
+    {
+      "id": "1754142764783591618",
+      "course_id": "1754142725",
+      "title": "Module 1: Introduction to Rust",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754142744939",
+          "type": "text",
+          "content": "\u003cul\u003e\u003cli\u003e\u003cstrong\u003eTopic: What is Rust and Why Learn It? \u003c/strong\u003e\u003c/li\u003e\u003cli\u003eDescription: This section introduces Rust, its philosophy, and its key advantages, such as memory safety without garbage collection, high performance, and excellent concurrency support. We'll discuss common use cases and the problems Rust aims to solve. \u003c/li\u003e\u003c/ul\u003e\u003cp\u003e\u003cbr\u003e\u003c/p\u003e\u003cul\u003e\u003cli\u003e\u003cstrong\u003eTopic: Setting Up Your Rust Environment \u003c/strong\u003e\u003c/li\u003e\u003cli\u003eDescription: Learn how to install Rust using rustup, the official Rust toolchain installer. We'll cover cargo, Rust's build system and package manager, and how to create your first Rust project.\u003c/li\u003e\u003c/ul\u003e"
+        },
+        {
+          "id": "1754142755665",
+          "type": "code",
+          "content": "// main.rs\nfn main() {\n    // Prints \"Hello, world!\" to the console\n    println!(\"Hello, world!\");\n}\n",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T19:22:44+05:30",
+      "updatedAt": "2025-08-02T19:33:04+05:30"
+    }
+  ],
+  "createdAt": "2025-08-02T19:22:05+05:30",
+  "updatedAt": "2025-08-02T19:33:04+05:30"
+}

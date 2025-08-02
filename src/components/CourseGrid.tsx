@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react';
 import { Code, Zap, Server, Rocket, Layers, BookOpen, Mail, Star, Users, Clock, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Course } from '@/pages/Index';
-import { dataService } from '@/services/dataService';
 
 interface CourseGridProps {
+  courses: Course[];
   onCourseSelect: (course: Course) => void;
 }
 
@@ -20,21 +19,7 @@ const iconMap = {
   Mail
 };
 
-export function CourseGrid({ onCourseSelect }: CourseGridProps) {
-  const [courses, setCourses] = useState<Course[]>([]);
-
-  useEffect(() => {
-    // Load courses from data service and convert to expected format
-    const loadedCourses = dataService.getCourses();
-    const convertedCourses: Course[] = loadedCourses.map(course => ({
-      ...course,
-      lessons: course.lessons.map(lesson => ({
-        ...lesson,
-        codeBlocks: lesson.codeBlocks || []
-      }))
-    }));
-    setCourses(convertedCourses);
-  }, []);
+export function CourseGrid({ courses, onCourseSelect }: CourseGridProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -91,63 +76,69 @@ export function CourseGrid({ onCourseSelect }: CourseGridProps) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {courses.map((course, index) => {
-            const IconComponent = iconMap[course.icon as keyof typeof iconMap];
-            return (
-              <Card 
-                key={course.id} 
-                className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm animate-fade-in cursor-pointer"
-                style={{ animationDelay: `${index * 0.1}s` }}
-                onClick={() => onCourseSelect(course)}
-              >
-                {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-indigo-500/5 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                <CardHeader className="relative z-10 pb-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 group-hover:from-purple-500 group-hover:to-indigo-600 transition-all duration-300 group-hover:scale-110">
-                      <IconComponent className="w-8 h-8 text-white" />
+        {courses.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-gray-500 dark:text-gray-400">No courses available. Please add some from the Admin Dashboard.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            {courses.map((course, index) => {
+              const IconComponent = iconMap[course.icon as keyof typeof iconMap];
+              return (
+                <Card 
+                  key={course.id} 
+                  className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm animate-fade-in cursor-pointer"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                  onClick={() => onCourseSelect(course)}
+                >
+                  {/* Gradient Background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-indigo-500/5 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  <CardHeader className="relative z-10 pb-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 group-hover:from-purple-500 group-hover:to-indigo-600 transition-all duration-300 group-hover:scale-110">
+                        <IconComponent className="w-8 h-8 text-white" />
+                      </div>
+                      <Badge 
+                        variant={course.difficulty === 'Beginner' ? 'default' : 'destructive'}
+                        className="px-3 py-1 font-medium"
+                      >
+                        {course.difficulty}
+                      </Badge>
                     </div>
-                    <Badge 
-                      variant={course.difficulty === 'Beginner' ? 'default' : 'destructive'}
-                      className="px-3 py-1 font-medium"
+                    <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                      {course.title}
+                    </CardTitle>
+                  </CardHeader>
+                  
+                  <CardContent className="relative z-10">
+                    <CardDescription className="text-gray-600 dark:text-gray-300 text-base leading-relaxed mb-6">
+                      {course.description}
+                    </CardDescription>
+                    
+                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
+                      <span className="flex items-center">
+                        <BookOpen className="w-4 h-4 mr-1" />
+                        {course.lessons.length} Lessons
+                      </span>
+                      <span className="flex items-center">
+                        <Clock className="w-4 h-4 mr-1" />
+                        Self-paced
+                      </span>
+                    </div>
+                    
+                    <Button 
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-2 rounded-lg transition-all duration-300 group-hover:shadow-lg"
                     >
-                      {course.difficulty}
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-                    {course.title}
-                  </CardTitle>
-                </CardHeader>
-                
-                <CardContent className="relative z-10">
-                  <CardDescription className="text-gray-600 dark:text-gray-300 text-base leading-relaxed mb-6">
-                    {course.description}
-                  </CardDescription>
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    <span className="flex items-center">
-                      <BookOpen className="w-4 h-4 mr-1" />
-                      {course.lessons.length} Lessons
-                    </span>
-                    <span className="flex items-center">
-                      <Clock className="w-4 h-4 mr-1" />
-                      Self-paced
-                    </span>
-                  </div>
-                  
-                  <Button 
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-2 rounded-lg transition-all duration-300 group-hover:shadow-lg"
-                  >
-                    Start Course
-                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                      Start Course
+                      <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
         {/* Features Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">

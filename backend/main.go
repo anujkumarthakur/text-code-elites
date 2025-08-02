@@ -1,16 +1,21 @@
-
 package main
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-// Models - these will be replaced with database models later
+// Models
 type Course struct {
 	ID          string   `json:"id"`
 	Title       string   `json:"title"`
@@ -18,628 +23,394 @@ type Course struct {
 	Icon        string   `json:"icon"`
 	Difficulty  string   `json:"difficulty"`
 	Lessons     []Lesson `json:"lessons"`
-	CreatedAt   string   `json:"created_at"`
-	UpdatedAt   string   `json:"updated_at"`
+	CreatedAt   string   `json:"createdAt"`
+	UpdatedAt   string   `json:"updatedAt"`
 }
 
 type Lesson struct {
-	ID         string        `json:"id"`
-	CourseID   string        `json:"course_id"`
-	Title      string        `json:"title"`
-	Content    string        `json:"content"`
-	CodeBlocks []CodeBlock   `json:"code_blocks"`
-	Order      int           `json:"order"`
-	Completed  bool          `json:"completed,omitempty"`
-	CreatedAt  string        `json:"created_at"`
-	UpdatedAt  string        `json:"updated_at"`
+	ID         string      `json:"id"`
+	CourseID   string      `json:"course_id"`
+	Title      string      `json:"title"`
+	Content    string      `json:"content"`
+	CodeBlocks []CodeBlock `json:"codeBlocks"` // Corrected tag
+	Order      int         `json:"order"`
+	Completed  bool        `json:"completed,omitempty"`
+	CreatedAt  string      `json:"createdAt"`
+	UpdatedAt  string      `json:"updatedAt"`
 }
 
 type CodeBlock struct {
 	ID       string `json:"id"`
-	Language string `json:"language"`
-	Code     string `json:"code"`
-	Order    int    `json:"order"`
+	Type     string `json:"type"`
+	Content  string `json:"content"`
+	Language string `json:"language,omitempty"`
 }
 
-type Comment struct {
-	ID        string `json:"id"`
-	LessonID  string `json:"lesson_id"`
-	UserID    string `json:"user_id"`
-	Content   string `json:"content"`
-	Author    string `json:"author"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+const dataPath = "data"
+
+// Helper to get all courses from files
+func getAllCourses() ([]Course, error) {
+	var courses []Course
+	files, err := ioutil.ReadDir(dataPath)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".json" {
+			data, err := ioutil.ReadFile(filepath.Join(dataPath, file.Name()))
+			if err != nil {
+				log.Printf("Error reading file %s: %v", file.Name(), err)
+				continue
+			}
+
+			var course Course
+			if err := json.Unmarshal(data, &course); err == nil {
+				// Ensure lessons and codeblocks are not nil
+				if course.Lessons == nil {
+					course.Lessons = []Lesson{}
+				}
+				for i := range course.Lessons {
+					if course.Lessons[i].CodeBlocks == nil {
+						course.Lessons[i].CodeBlocks = []CodeBlock{}
+					}
+				}
+				courses = append(courses, course)
+			} else {
+				log.Printf("Error unmarshalling file %s: %v", file.Name(), err)
+			}
+		}
+	}
+	return courses, nil
 }
 
-type User struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	Role      string `json:"role"` // "user" or "admin"
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+// Helper to find a course file path by its ID
+func findCourseFilePath(courseID string) (string, error) {
+	courses, err := getAllCourses()
+	if err != nil {
+		return "", err
+	}
+	for _, course := range courses {
+		if course.ID == courseID {
+			fileName := strings.ReplaceAll(strings.ToLower(course.Title), " ", "-") + ".json"
+			return filepath.Join(dataPath, fileName), nil
+		}
+	}
+	return "", os.ErrNotExist
 }
-
-// In-memory storage (will be replaced with PostgreSQL)
-var courses []Course
-var comments []Comment
-var users []User
 
 func main() {
-	// Initialize mock data
-	initMockData()
+	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
+		os.Mkdir(dataPath, os.ModePerm)
+	}
 
-	// Initialize Gin router
 	r := gin.Default()
 
-	// CORS middleware
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:3000"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
+		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:8081"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}))
 
-	// API routes
 	api := r.Group("/api/v1")
 	{
-		// Course routes
-		api.GET("/courses", getCourses)
-		api.GET("/courses/:id", getCourse)
-		api.POST("/courses", createCourse)
-		api.PUT("/courses/:id", updateCourse)
-		api.DELETE("/courses/:id", deleteCourse)
-
-		// Lesson routes
-		api.GET("/courses/:course_id/lessons", getLessons)
-		api.GET("/lessons/:id", getLesson)
-		api.POST("/courses/:course_id/lessons", createLesson)
-		api.PUT("/lessons/:id", updateLesson)
-		api.DELETE("/lessons/:id", deleteLesson)
-
-		// Comment routes  
-		api.GET("/lessons/:lesson_id/comments", getComments)
-		api.POST("/lessons/:lesson_id/comments", createComment)
-		api.PUT("/comments/:id", updateComment)
-		api.DELETE("/comments/:id", deleteComment)
-
-		// User routes
-		api.GET("/users", getUsers)
-		api.GET("/users/:id", getUser)
-		api.POST("/users", createUser)
-		api.PUT("/users/:id", updateUser)
-		api.DELETE("/users/:id", deleteUser)
-
-		// Admin routes
-		admin := api.Group("/admin")
+		courses := api.Group("/courses")
 		{
-			admin.GET("/stats", getAdminStats)
-			admin.GET("/courses", getAdminCourses)
-			admin.GET("/users", getAdminUsers)
+			courses.GET("", getCourses)
+			courses.POST("", createCourse)
+			courses.GET("/:id", getCourse)
+			courses.PUT("/:id", updateCourse)
+			courses.DELETE("/:id", deleteCourse)
+
+			// Nested lesson routes
+			courses.GET("/:id/lessons", getLessons)
+			courses.POST("/:id/lessons", createLesson)
+			courses.PUT("/:id/lessons/:lesson_id", updateLesson)
+			courses.DELETE("/:id/lessons/:lesson_id", deleteLesson)
 		}
 	}
 
-	// Health check
 	r.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"status":  "healthy",
-			"message": "CodeMaster API is running",
-		})
+		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
 	})
 
 	log.Println("🚀 Server starting on http://localhost:8080")
-	log.Fatal(r.Run(":8080"))
+	log.Fatal(r.Run(":8082"))
 }
 
-// Course handlers
+// Course Handlers
 func getCourses(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"data":    courses,
-		"message": "Courses retrieved successfully",
-	})
+	courses, err := getAllCourses()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read data directory"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": courses})
 }
 
 func getCourse(c *gin.Context) {
-	id := c.Param("id")
-	for _, course := range courses {
-		if course.ID == id {
-			c.JSON(http.StatusOK, gin.H{
-				"data":    course,
-				"message": "Course retrieved successfully",
-			})
-			return
+	filePath, err := findCourseFilePath(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
+		return
+	}
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Course file not found"})
+		return
+	}
+	var course Course
+	json.Unmarshal(data, &course)
+	// Ensure lessons and codeblocks are not nil
+	if course.Lessons == nil {
+		course.Lessons = []Lesson{}
+	}
+	for i := range course.Lessons {
+		if course.Lessons[i].CodeBlocks == nil {
+			course.Lessons[i].CodeBlocks = []CodeBlock{}
 		}
 	}
-	c.JSON(http.StatusNotFound, gin.H{
-		"error": "Course not found",
-	})
+	c.JSON(http.StatusOK, gin.H{"data": course})
 }
 
 func createCourse(c *gin.Context) {
 	var course Course
 	if err := c.ShouldBindJSON(&course); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	course.ID = strconv.Itoa(len(courses) + 1)
-	course.CreatedAt = "2024-01-01T00:00:00Z"
-	course.UpdatedAt = "2024-01-01T00:00:00Z"
-	courses = append(courses, course)
+	course.ID = strconv.FormatInt(time.Now().Unix(), 10)
+	now := time.Now().Format(time.RFC3339)
+	course.CreatedAt = now
+	course.UpdatedAt = now
+	if course.Lessons == nil {
+		course.Lessons = []Lesson{}
+	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"data":    course,
-		"message": "Course created successfully",
-	})
+	fileName := strings.ReplaceAll(strings.ToLower(course.Title), " ", "-") + ".json"
+	filePath := filepath.Join(dataPath, fileName)
+
+	data, _ := json.MarshalIndent(course, "", "  ")
+	if err := ioutil.WriteFile(filePath, data, 0644); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to write course data"})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"data": course})
 }
 
 func updateCourse(c *gin.Context) {
-	id := c.Param("id")
-	var updatedCourse Course
-	if err := c.ShouldBindJSON(&updatedCourse); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+	courseID := c.Param("id")
+	filePath, err := findCourseFilePath(courseID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
 		return
 	}
 
-	for i, course := range courses {
-		if course.ID == id {
-			updatedCourse.ID = id
-			updatedCourse.CreatedAt = course.CreatedAt
-			updatedCourse.UpdatedAt = "2024-01-01T00:00:00Z"
-			courses[i] = updatedCourse
-			c.JSON(http.StatusOK, gin.H{
-				"data":    updatedCourse,
-				"message": "Course updated successfully",
-			})
-			return
-		}
+	var updatedCourse Course
+	if err := c.ShouldBindJSON(&updatedCourse); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{
-		"error": "Course not found",
-	})
+
+	data, _ := ioutil.ReadFile(filePath)
+	var existingCourse Course
+	json.Unmarshal(data, &existingCourse)
+
+	// Preserve original creation date and lessons
+	updatedCourse.ID = courseID
+	updatedCourse.CreatedAt = existingCourse.CreatedAt
+	// Ensure lessons are not overwritten if not provided in update, or initialize if nil
+	if updatedCourse.Lessons == nil {
+		updatedCourse.Lessons = existingCourse.Lessons
+	}
+	updatedCourse.UpdatedAt = time.Now().Format(time.RFC3339)
+
+	// Handle potential file rename if title changes
+	newFileName := strings.ReplaceAll(strings.ToLower(updatedCourse.Title), " ", "-") + ".json"
+	newFilePath := filepath.Join(dataPath, newFileName)
+
+	if filePath != newFilePath {
+		os.Remove(filePath)
+	}
+
+	newData, _ := json.MarshalIndent(updatedCourse, "", "  ")
+	ioutil.WriteFile(newFilePath, newData, 0644)
+
+	c.JSON(http.StatusOK, gin.H{"data": updatedCourse})
 }
 
 func deleteCourse(c *gin.Context) {
-	id := c.Param("id")
-	for i, course := range courses {
-		if course.ID == id {
-			courses = append(courses[:i], courses[i+1:]...)
-			c.JSON(http.StatusOK, gin.H{
-				"message": "Course deleted successfully",
-			})
-			return
-		}
+	filePath, err := findCourseFilePath(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{
-		"error": "Course not found",
-	})
+	if err := os.Remove(filePath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete course file"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Course deleted successfully"})
 }
 
-// Lesson handlers
+// Lesson Handlers
 func getLessons(c *gin.Context) {
-	courseID := c.Param("course_id")
-	var lessons []Lesson
-	
-	for _, course := range courses {
-		if course.ID == courseID {
-			lessons = course.Lessons
+	filePath, err := findCourseFilePath(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
+		return
+	}
+	data, _ := ioutil.ReadFile(filePath)
+	var course Course
+	json.Unmarshal(data, &course)
+	// Ensure Lessons is never nil
+	if course.Lessons == nil {
+		course.Lessons = []Lesson{}
+	}
+	for i := range course.Lessons {
+		if course.Lessons[i].CodeBlocks == nil {
+			course.Lessons[i].CodeBlocks = []CodeBlock{}
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{"data": course.Lessons})
+}
+
+func createLesson(c *gin.Context) {
+	courseID := c.Param("id")
+	filePath, err := findCourseFilePath(courseID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
+		return
+	}
+
+	var lesson Lesson
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read request body"})
+		return
+	}
+	log.Printf("Raw lesson creation request body: %s", string(body))
+
+	if err := json.Unmarshal(body, &lesson); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format for lesson"})
+		return
+	}
+	log.Printf("Received lesson for creation: %+v", lesson)
+
+	data, _ := ioutil.ReadFile(filePath)
+	var course Course
+	json.Unmarshal(data, &course)
+
+	now := time.Now()
+	lesson.ID = strconv.FormatInt(now.UnixNano(), 10)
+	lesson.CourseID = courseID
+	lesson.CreatedAt = now.Format(time.RFC3339)
+	lesson.UpdatedAt = now.Format(time.RFC3339)
+	// Ensure CodeBlocks is never nil
+	if lesson.CodeBlocks == nil {
+		lesson.CodeBlocks = []CodeBlock{}
+	}
+
+	course.Lessons = append(course.Lessons, lesson)
+	course.UpdatedAt = now.Format(time.RFC3339)
+
+	newData, _ := json.MarshalIndent(course, "", "  ")
+	ioutil.WriteFile(filePath, newData, 0644)
+
+	c.JSON(http.StatusCreated, gin.H{"data": lesson})
+}
+
+func updateLesson(c *gin.Context) {
+	courseID := c.Param("id")
+	lessonID := c.Param("lesson_id")
+	filePath, err := findCourseFilePath(courseID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
+		return
+	}
+
+	var updatedLesson Lesson
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read request body"})
+		return
+	}
+	log.Printf("Raw lesson update request body: %s", string(body))
+
+	if err := json.Unmarshal(body, &updatedLesson); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format for lesson update"})
+		return
+	}
+	log.Printf("Received lesson for update: %+v", updatedLesson)
+
+	data, _ := ioutil.ReadFile(filePath)
+	var course Course
+	json.Unmarshal(data, &course)
+
+	lessonIndex := -1
+	for i, l := range course.Lessons {
+		if l.ID == lessonID {
+			lessonIndex = i
 			break
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data":    lessons,
-		"message": "Lessons retrieved successfully",
-	})
-}
-
-func getLesson(c *gin.Context) {
-	id := c.Param("id")
-	for _, course := range courses {
-		for _, lesson := range course.Lessons {
-			if lesson.ID == id {
-				c.JSON(http.StatusOK, gin.H{
-					"data":    lesson,
-					"message": "Lesson retrieved successfully",
-				})
-				return
-			}
-		}
-	}
-	c.JSON(http.StatusNotFound, gin.H{
-		"error": "Lesson not found",
-	})
-}
-
-func createLesson(c *gin.Context) {
-	courseID := c.Param("course_id")
-	var lesson Lesson
-	if err := c.ShouldBindJSON(&lesson); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+	if lessonIndex == -1 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Lesson not found"})
 		return
 	}
 
-	lesson.ID = strconv.Itoa(len(courses)*100 + len(courses))
-	lesson.CourseID = courseID
-	lesson.CreatedAt = "2024-01-01T00:00:00Z"
-	lesson.UpdatedAt = "2024-01-01T00:00:00Z"
-
-	// Add lesson to course
-	for i, course := range courses {
-		if course.ID == courseID {
-			courses[i].Lessons = append(courses[i].Lessons, lesson)
-			c.JSON(http.StatusCreated, gin.H{
-				"data":    lesson,
-				"message": "Lesson created successfully",
-			})
-			return
-		}
+	// Preserve original creation date
+	updatedLesson.CreatedAt = course.Lessons[lessonIndex].CreatedAt
+	updatedLesson.ID = lessonID
+	updatedLesson.CourseID = courseID
+	updatedLesson.UpdatedAt = time.Now().Format(time.RFC3339)
+	// Ensure CodeBlocks is never nil
+	if updatedLesson.CodeBlocks == nil {
+		updatedLesson.CodeBlocks = []CodeBlock{}
 	}
 
-	c.JSON(http.StatusNotFound, gin.H{
-		"error": "Course not found",
-	})
-}
+	course.Lessons[lessonIndex] = updatedLesson
+	course.UpdatedAt = time.Now().Format(time.RFC3339)
 
-func updateLesson(c *gin.Context) {
-	id := c.Param("id")
-	var updatedLesson Lesson
-	if err := c.ShouldBindJSON(&updatedLesson); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
+	newData, _ := json.MarshalIndent(course, "", "  ")
+	ioutil.WriteFile(filePath, newData, 0644)
 
-	for i, course := range courses {
-		for j, lesson := range course.Lessons {
-			if lesson.ID == id {
-				updatedLesson.ID = id
-				updatedLesson.CourseID = lesson.CourseID
-				updatedLesson.CreatedAt = lesson.CreatedAt
-				updatedLesson.UpdatedAt = "2024-01-01T00:00:00Z"
-				courses[i].Lessons[j] = updatedLesson
-				c.JSON(http.StatusOK, gin.H{
-					"data":    updatedLesson,
-					"message": "Lesson updated successfully",
-				})
-				return
-			}
-		}
-	}
-	c.JSON(http.StatusNotFound, gin.H{
-		"error": "Lesson not found",
-	})
+	c.JSON(http.StatusOK, gin.H{"data": updatedLesson})
 }
 
 func deleteLesson(c *gin.Context) {
-	id := c.Param("id")
-	for i, course := range courses {
-		for j, lesson := range course.Lessons {
-			if lesson.ID == id {
-				courses[i].Lessons = append(courses[i].Lessons[:j], courses[i].Lessons[j+1:]...)
-				c.JSON(http.StatusOK, gin.H{
-					"message": "Lesson deleted successfully",
-				})
-				return
-			}
-		}
-	}
-	c.JSON(http.StatusNotFound, gin.H{
-		"error": "Lesson not found",
-	})
-}
-
-// Comment handlers
-func getComments(c *gin.Context) {
+	courseID := c.Param("id")
 	lessonID := c.Param("lesson_id")
-	var lessonComments []Comment
-	
-	for _, comment := range comments {
-		if comment.LessonID == lessonID {
-			lessonComments = append(lessonComments, comment)
-		}
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"data":    lessonComments,
-		"message": "Comments retrieved successfully",
-	})
-}
-
-func createComment(c *gin.Context) {
-	lessonID := c.Param("lesson_id")
-	var comment Comment
-	if err := c.ShouldBindJSON(&comment); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+	filePath, err := findCourseFilePath(courseID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
 		return
 	}
 
-	comment.ID = strconv.Itoa(len(comments) + 1)
-	comment.LessonID = lessonID
-	comment.CreatedAt = "2024-01-01T00:00:00Z"
-	comment.UpdatedAt = "2024-01-01T00:00:00Z"
-	comments = append(comments, comment)
+	data, _ := ioutil.ReadFile(filePath)
+	var course Course
+	json.Unmarshal(data, &course)
 
-	c.JSON(http.StatusCreated, gin.H{
-		"data":    comment,
-		"message": "Comment created successfully",
-	})
-}
+	lessonIndex := -1
+	for i, l := range course.Lessons {
+		if l.ID == lessonID {
+			lessonIndex = i
+			break
+		}
+	}
 
-func updateComment(c *gin.Context) {
-	id := c.Param("id")
-	var updatedComment Comment
-	if err := c.ShouldBindJSON(&updatedComment); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+	if lessonIndex == -1 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Lesson not found"})
 		return
 	}
 
-	for i, comment := range comments {
-		if comment.ID == id {
-			updatedComment.ID = id
-			updatedComment.LessonID = comment.LessonID
-			updatedComment.UserID = comment.UserID
-			updatedComment.CreatedAt = comment.CreatedAt
-			updatedComment.UpdatedAt = "2024-01-01T00:00:00Z"
-			comments[i] = updatedComment
-			c.JSON(http.StatusOK, gin.H{
-				"data":    updatedComment,
-				"message": "Comment updated successfully",
-			})
-			return
-		}
-	}
-	c.JSON(http.StatusNotFound, gin.H{
-		"error": "Comment not found",
-	})
-}
+	course.Lessons = append(course.Lessons[:lessonIndex], course.Lessons[lessonIndex+1:]...)
+	course.UpdatedAt = time.Now().Format(time.RFC3339)
 
-func deleteComment(c *gin.Context) {
-	id := c.Param("id")
-	for i, comment := range comments {
-		if comment.ID == id {
-			comments = append(comments[:i], comments[i+1:]...)
-			c.JSON(http.StatusOK, gin.H{
-				"message": "Comment deleted successfully",
-			})
-			return
-		}
-	}
-	c.JSON(http.StatusNotFound, gin.H{
-		"error": "Comment not found",
-	})
-}
+	newData, _ := json.MarshalIndent(course, "", "  ")
+	ioutil.WriteFile(filePath, newData, 0644)
 
-// User handlers
-func getUsers(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"data":    users,
-		"message": "Users retrieved successfully",
-	})
-}
-
-func getUser(c *gin.Context) {
-	id := c.Param("id")
-	for _, user := range users {
-		if user.ID == id {
-			c.JSON(http.StatusOK, gin.H{
-				"data":    user,
-				"message": "User retrieved successfully",
-			})
-			return
-		}
-	}
-	c.JSON(http.StatusNotFound, gin.H{
-		"error": "User not found",
-	})
-}
-
-func createUser(c *gin.Context) {
-	var user User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	user.ID = strconv.Itoa(len(users) + 1)
-	user.CreatedAt = "2024-01-01T00:00:00Z"
-	user.UpdatedAt = "2024-01-01T00:00:00Z"
-	users = append(users, user)
-
-	c.JSON(http.StatusCreated, gin.H{
-		"data":    user,
-		"message": "User created successfully",
-	})
-}
-
-func updateUser(c *gin.Context) {
-	id := c.Param("id")
-	var updatedUser User
-	if err := c.ShouldBindJSON(&updatedUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	for i, user := range users {
-		if user.ID == id {
-			updatedUser.ID = id
-			updatedUser.CreatedAt = user.CreatedAt
-			updatedUser.UpdatedAt = "2024-01-01T00:00:00Z"
-			users[i] = updatedUser
-			c.JSON(http.StatusOK, gin.H{
-				"data":    updatedUser,
-				"message": "User updated successfully",
-			})
-			return
-		}
-	}
-	c.JSON(http.StatusNotFound, gin.H{
-		"error": "User not found",
-	})
-}
-
-func deleteUser(c *gin.Context) {
-	id := c.Param("id")
-	for i, user := range users {
-		if user.ID == id {
-			users = append(users[:i], users[i+1:]...)
-			c.JSON(http.StatusOK, gin.H{
-				"message": "User deleted successfully",
-			})
-			return
-		}
-	}
-	c.JSON(http.StatusNotFound, gin.H{
-		"error": "User not found",
-	})
-}
-
-// Admin handlers
-func getAdminStats(c *gin.Context) {
-	stats := gin.H{
-		"total_courses":     len(courses),
-		"total_lessons":     getTotalLessons(),
-		"total_users":       len(users),
-		"total_comments":    len(comments),
-		"completion_rate":   78.5,
-		"active_users":      1234,
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"data":    stats,
-		"message": "Admin stats retrieved successfully",
-	})
-}
-
-func getAdminCourses(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"data":    courses,
-		"message": "Admin courses retrieved successfully",
-	})
-}
-
-func getAdminUsers(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"data":    users,
-		"message": "Admin users retrieved successfully",
-	})
-}
-
-// Helper functions
-func getTotalLessons() int {
-	total := 0
-	for _, course := range courses {
-		total += len(course.Lessons)
-	}
-	return total
-}
-
-func initMockData() {
-	// Initialize mock courses
-	courses = []Course{
-		{
-			ID:          "1",
-			Title:       "Go Fundamentals",
-			Description: "Master the fundamentals of Go programming language with hands-on examples and real-world projects.",
-			Icon:        "Code",
-			Difficulty:  "Beginner",
-			CreatedAt:   "2024-01-01T00:00:00Z",
-			UpdatedAt:   "2024-01-01T00:00:00Z",
-			Lessons: []Lesson{
-				{
-					ID:        "1-1",
-					CourseID:  "1",
-					Title:     "Introduction to Go",
-					Content:   "Welcome to Go programming...",
-					Order:     1,
-					CreatedAt: "2024-01-01T00:00:00Z",
-					UpdatedAt: "2024-01-01T00:00:00Z",
-					CodeBlocks: []CodeBlock{
-						{
-							ID:       "1-1-1",
-							Language: "go",
-							Code:     `package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello, World!")\n}`,
-							Order:    1,
-						},
-					},
-				},
-			},
-		},
-		{
-			ID:          "2",
-			Title:       "Advanced Go Patterns",
-			Description: "Deep dive into advanced Go concepts including interfaces, goroutines, channels, and design patterns.",
-			Icon:        "Zap",
-			Difficulty:  "Advanced",
-			CreatedAt:   "2024-01-01T00:00:00Z",
-			UpdatedAt:   "2024-01-01T00:00:00Z",
-			Lessons: []Lesson{
-				{
-					ID:        "2-1",
-					CourseID:  "2",
-					Title:     "Interfaces and Polymorphism",
-					Content:   "Interfaces in Go are one of the most powerful features...",
-					Order:     1,
-					CreatedAt: "2024-01-01T00:00:00Z",
-					UpdatedAt: "2024-01-01T00:00:00Z",
-					CodeBlocks: []CodeBlock{
-						{
-							ID:       "2-1-1",
-							Language: "go",
-							Code:     `type Writer interface {\n    Write([]byte) (int, error)\n}`,
-							Order:    1,
-						},
-					},
-				},
-			},
-		},
-	}
-
-	// Initialize mock users
-	users = []User{
-		{
-			ID:        "1",
-			Name:      "John Doe",
-			Email:     "john@example.com",
-			Role:      "admin",
-			CreatedAt: "2024-01-01T00:00:00Z",
-			UpdatedAt: "2024-01-01T00:00:00Z",
-		},
-		{
-			ID:        "2",
-			Name:      "Jane Smith",
-			Email:     "jane@example.com",
-			Role:      "user",
-			CreatedAt: "2024-01-01T00:00:00Z",
-			UpdatedAt: "2024-01-01T00:00:00Z",
-		},
-	}
-
-	// Initialize mock comments
-	comments = []Comment{
-		{
-			ID:        "1",
-			LessonID:  "1-1",
-			UserID:    "2",
-			Content:   "Great introduction to Go! Very clear explanations.",
-			Author:    "Jane Smith",
-			CreatedAt: "2024-01-01T00:00:00Z",
-			UpdatedAt: "2024-01-01T00:00:00Z",
-		},
-	}
+	c.JSON(http.StatusOK, gin.H{"message": "Lesson deleted successfully"})
 }

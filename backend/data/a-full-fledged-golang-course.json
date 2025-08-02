@@ -1,0 +1,571 @@
+{
+  "id": "1754124366",
+  "title": "A Full-Fledged Golang Course",
+  "description": "Welcome to this comprehensive course on Golang (Go)! Go is an open-source programming language designed for building simple, reliable, and efficient software. Developed by Google, it's known for its strong support for concurrency, fast compilation, and a straightforward syntax. Go is widely used for web services, cloud-native applications, command-line tools, and more.\n\nThis course is structured into modules, each covering a key aspect of Go. We'll start with the basics and gradually move to more advanced topics.",
+  "icon": "Code",
+  "difficulty": "Advanced",
+  "lessons": [
+    {
+      "id": "1754124619",
+      "course_id": "1754124366",
+      "title": "Module 1: Introduction to Go",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754138089539",
+          "type": "text",
+          "content": "Topic: What is Go and Why Learn It?\n\nDescription: This section introduces Go, its design philosophy, and its key advantages, such as built-in concurrency, garbage collection, fast compilation, and a robust standard library. We'll discuss common use cases and the problems Go aims to solve.\nTopic: Setting Up Your Go Environment\n\nDescription: Learn how to install Go on your system. We'll cover setting up your GOPATH, understanding Go workspaces, and how to create and run your first Go program."
+        },
+        {
+          "id": "1754138550273",
+          "type": "code",
+          "content": "package main // Declares the package as main, making it an executable program\n\nimport \"fmt\" // Imports the fmt package for formatted I/O\n\nfunc main() { // The entry point of the program\n    // Prints \"Hello, Go!\" to the console\n    fmt.Println(\"Hello, Go!\")\n}\n",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "",
+      "updatedAt": "2025-08-02T18:16:40+05:30"
+    },
+    {
+      "id": "1754129617679150437",
+      "course_id": "1754124366",
+      "title": "Module 2: Basic Concepts",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754138878083",
+          "type": "text",
+          "content": "Topic: Variables and Constants\n\nDescription: Understand how to declare variables using var and the shorthand := operator. Learn about zero values, type inference, and how to declare constants."
+        },
+        {
+          "id": "1754138885313",
+          "type": "code",
+          "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n    // Declare a variable with an explicit type\n    var name string = \"Alice\"\n    fmt.Println(\"Name:\", name)\n\n    // Declare a variable with type inference (shorthand declaration)\n    age := 30\n    fmt.Println(\"Age:\", age)\n\n    // Declare multiple variables\n    var (\n        city string = \"New York\"\n        zip  int    = 10001\n    )\n    fmt.Println(\"City:\", city, \"Zip:\", zip)\n\n    // Declare a constant\n    const PI float64 = 3.14159\n    fmt.Println(\"PI:\", PI)\n\n    // Constants can be untyped and take type from context\n    const greeting = \"Hello\"\n    fmt.Println(greeting, \"World!\")\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "",
+      "updatedAt": "2025-08-02T18:18:16+05:30"
+    },
+    {
+      "id": "1754138960600922143",
+      "course_id": "1754124366",
+      "title": "Topic: Data Types",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754138936252",
+          "type": "text",
+          "content": "Description: Explore Go's built-in data types: integers (signed and unsigned, various sizes), floating-point numbers, booleans, strings, and complex numbers. Understand their default values and common usage."
+        },
+        {
+          "id": "1754138944341",
+          "type": "code",
+          "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n    // Integer types\n    var i8 int8 = 127\n    var u16 uint16 = 65535\n    var i int = -100 // int is typically 32 or 64 bit depending on system\n    fmt.Printf(\"i8: %d, u16: %d, i: %d\\n\", i8, u16, i)\n\n    // Floating-point types\n    var f32 float32 = 3.14\n    var f64 float64 = 2.71828\n    fmt.Printf(\"f32: %f, f64: %f\\n\", f32, f64)\n\n    // Boolean type\n    var isGoFun bool = true\n    fmt.Println(\"Is Go fun?\", isGoFun)\n\n    // String type\n    var message string = \"Go is awesome!\"\n    fmt.Println(\"Message:\", message)\n\n    // Rune (Unicode character)\n    var r rune = '⌘'\n    fmt.Println(\"Rune:\", string(r)) // Convert rune back to string for printing\n\n    // Complex numbers (complex64, complex128)\n    var c complex64 = 1 + 2i\n    fmt.Println(\"Complex number:\", c)\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:19:20+05:30",
+      "updatedAt": "2025-08-02T18:19:20+05:30"
+    },
+    {
+      "id": "1754139033647527849",
+      "course_id": "1754124366",
+      "title": "Topic: Functions",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139013962",
+          "type": "text",
+          "content": "Description: Learn how to define and call functions, pass arguments, and return values. Understand multiple return values, named return values, and variadic functions."
+        },
+        {
+          "id": "1754139017298",
+          "type": "code",
+          "content": "package main\n\nimport \"fmt\"\n\n// Simple function with no return value\nfunc greet(name string) {\n    fmt.Println(\"Hello,\", name)\n}\n\n// Function with a single return value\nfunc add(a, b int) int {\n    return a + b\n}\n\n// Function with multiple return values\nfunc swap(x, y string) (string, string) {\n    return y, x\n}\n\n// Function with named return values\nfunc divide(numerator, denominator float64) (quotient float64, remainder float64) {\n    if denominator == 0 {\n        return 0, 0 // Or handle error\n    }\n    quotient = numerator / denominator\n    remainder = numerator - (quotient * denominator) // Simple remainder calculation\n    return // Returns named return values\n}\n\n// Variadic function (accepts variable number of arguments)\nfunc sumAll(numbers ...int) int {\n    total := 0\n    for _, num := range numbers {\n        total += num\n    }\n    return total\n}\n\nfunc main() {\n    greet(\"World\")\n\n    result := add(5, 3)\n    fmt.Println(\"5 + 3 =\", result)\n\n    a, b := swap(\"first\", \"second\")\n    fmt.Println(\"Swapped:\", a, b)\n\n    q, r := divide(10.0, 3.0)\n    fmt.Printf(\"10 / 3 = %.2f, Remainder: %.2f\\n\", q, r)\n\n    fmt.Println(\"Sum of 1,2,3:\", sumAll(1, 2, 3))\n    fmt.Println(\"Sum of 1,2,3,4,5:\", sumAll(1, 2, 3, 4, 5))\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:20:33+05:30",
+      "updatedAt": "2025-08-02T18:20:33+05:30"
+    },
+    {
+      "id": "1754139067195062815",
+      "course_id": "1754124366",
+      "title": "Topic: Control Flow (if/else, switch, loops)",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139049755",
+          "type": "text",
+          "content": "Description: Master conditional execution with if, else if, and else statements. Explore switch statements for multi-way branching and different types of loops: for (Go's only loop construct), for as while, and for over collections."
+        },
+        {
+          "id": "1754139064324",
+          "type": "code",
+          "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n    // If/Else\n    num := 7\n    if num%2 == 0 {\n        fmt.Println(num, \"is even\")\n    } else {\n        fmt.Println(num, \"is odd\")\n    }\n\n    // If with a short statement\n    if val := 10; val \u003e 5 {\n        fmt.Println(val, \"is greater than 5\")\n    } else {\n        fmt.Println(val, \"is not greater than 5\")\n    }\n    // `val` is only accessible within the if/else block\n\n    // Switch statement\n    day := \"Wednesday\"\n    switch day {\n    case \"Monday\", \"Tuesday\":\n        fmt.Println(\"Start of the week\")\n    case \"Wednesday\":\n        fmt.Println(\"Midweek\")\n    case \"Thursday\", \"Friday\":\n        fmt.Println(\"End of the week\")\n    default:\n        fmt.Println(\"Weekend\")\n    }\n\n    // Switch without a condition (acts like if/else if)\n    score := 85\n    switch {\n    case score \u003e= 90:\n        fmt.Println(\"Grade A\")\n    case score \u003e= 80:\n        fmt.Println(\"Grade B\")\n    default:\n        fmt.Println(\"Grade C or lower\")\n    }\n\n    // Basic for loop\n    for i := 0; i \u003c 5; i++ {\n        fmt.Println(\"Loop iteration:\", i)\n    }\n\n    // For loop as a while loop\n    j := 0\n    for j \u003c 3 {\n        fmt.Println(\"While loop iteration:\", j)\n        j++\n    }\n\n    // Infinite loop (break with `break`)\n    k := 0\n    for {\n        fmt.Println(\"Infinite loop iteration:\", k)\n        k++\n        if k \u003e= 2 {\n            break\n        }\n    }\n\n    // For loop over a slice (range keyword)\n    numbers := []int{10, 20, 30}\n    for index, value := range numbers {\n        fmt.Printf(\"Index: %d, Value: %d\\n\", index, value)\n    }\n\n    // For loop over a string (range keyword for runes)\n    str := \"Hello, 世界\"\n    for i, r := range str {\n        fmt.Printf(\"Char at index %d is %c (rune %d)\\n\", i, r, r)\n    }\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:21:07+05:30",
+      "updatedAt": "2025-08-02T18:21:07+05:30"
+    },
+    {
+      "id": "1754139100788834187",
+      "course_id": "1754124366",
+      "title": "Module 3: Data Structures",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139080678",
+          "type": "text",
+          "content": "Description: Learn about fixed-size arrays in Go. Understand how to declare, initialize, and access elements in arrays."
+        },
+        {
+          "id": "1754139096678",
+          "type": "code",
+          "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n    // Declare an array of 5 integers, initialized to zero values\n    var a [5]int\n    fmt.Println(\"Array a:\", a) // Output: [0 0 0 0 0]\n\n    // Set a value at an index\n    a[2] = 10\n    fmt.Println(\"Array a after setting:\", a)\n    fmt.Println(\"Element at index 2:\", a[2])\n\n    // Declare and initialize an array\n    b := [3]string{\"apple\", \"banana\", \"cherry\"}\n    fmt.Println(\"Array b:\", b)\n\n    // Declare and initialize an array with ellipsis for size\n    c := [...]int{1, 2, 3, 4, 5}\n    fmt.Println(\"Array c:\", c)\n    fmt.Println(\"Length of c:\", len(c))\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:21:40+05:30",
+      "updatedAt": "2025-08-02T18:21:40+05:30"
+    },
+    {
+      "id": "1754139127753757857",
+      "course_id": "1754124366",
+      "title": "Topic: Slices",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139110553",
+          "type": "text",
+          "content": "Description: Understand slices, Go's powerful and flexible dynamic arrays. Learn about their underlying array, length, and capacity. Explore how to create slices, append elements, and slice existing arrays or slices."
+        },
+        {
+          "id": "1754139118107",
+          "type": "code",
+          "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n    // Declare a slice (zero value is nil)\n    var s []int\n    fmt.Println(\"Slice s (nil):\", s, \"Length:\", len(s), \"Capacity:\", cap(s))\n\n    // Create a slice using make\n    s = make([]int, 3, 5) // type, length, capacity\n    fmt.Println(\"Slice s (make):\", s, \"Length:\", len(s), \"Capacity:\", cap(s))\n\n    // Initialize a slice\n    t := []string{\"red\", \"green\", \"blue\"}\n    fmt.Println(\"Slice t:\", t)\n\n    // Append elements to a slice\n    t = append(t, \"yellow\", \"orange\")\n    fmt.Println(\"Slice t after append:\", t)\n\n    // Slicing an array\n    arr := [5]int{1, 2, 3, 4, 5}\n    slice1 := arr[0:3] // Elements from index 0 up to (but not including) 3\n    fmt.Println(\"Slice from array (arr[0:3]):\", slice1)\n\n    slice2 := arr[2:] // Elements from index 2 to end\n    fmt.Println(\"Slice from array (arr[2:]):\", slice2)\n\n    slice3 := arr[:4] // Elements from start up to (but not including) 4\n    fmt.Println(\"Slice from array (arr[:4]):\", slice3)\n\n    // Copying slices\n    src := []int{10, 20, 30}\n    dst := make([]int, len(src))\n    copy(dst, src)\n    fmt.Println(\"Copied slice:\", dst)\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:22:07+05:30",
+      "updatedAt": "2025-08-02T18:22:07+05:30"
+    },
+    {
+      "id": "1754139154585320310",
+      "course_id": "1754124366",
+      "title": "Topic: Maps",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139140721",
+          "type": "text",
+          "content": "Description: Learn about maps (hash maps or dictionaries) for storing key-value pairs. Understand how to create, add, access, update, and delete entries in maps."
+        },
+        {
+          "id": "1754139143626",
+          "type": "code",
+          "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n    // Create a map using make\n    m := make(map[string]int) // map[keyType]valueType\n\n    // Add key-value pairs\n    m[\"apple\"] = 1\n    m[\"banana\"] = 2\n    m[\"cherry\"] = 3\n    fmt.Println(\"Map m:\", m)\n\n    // Access a value\n    fmt.Println(\"Value of apple:\", m[\"apple\"])\n\n    // Check if a key exists\n    val, ok := m[\"grape\"]\n    fmt.Println(\"Value of grape:\", val, \"Exists:\", ok) // Output: 0 false\n\n    // Update a value\n    m[\"apple\"] = 5\n    fmt.Println(\"Map m after update:\", m)\n\n    // Delete an entry\n    delete(m, \"banana\")\n    fmt.Println(\"Map m after delete:\", m)\n\n    // Declare and initialize a map literal\n    colors := map[string]string{\n        \"red\":   \"#FF0000\",\n        \"green\": \"#00FF00\",\n        \"blue\":  \"#0000FF\",\n    }\n    fmt.Println(\"Colors map:\", colors)\n\n    // Iterate over a map\n    for key, value := range colors {\n        fmt.Printf(\"Key: %s, Value: %s\\n\", key, value)\n    }\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:22:34+05:30",
+      "updatedAt": "2025-08-02T18:22:34+05:30"
+    },
+    {
+      "id": "1754139193228024419",
+      "course_id": "1754124366",
+      "title": "Topic: Structs",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139163010",
+          "type": "text",
+          "content": "Description: Understand how to define custom data types using structs, which allow you to combine related data into a single named structure. Learn how to create instances of structs and access their fields."
+        },
+        {
+          "id": "1754139177203",
+          "type": "code",
+          "content": "package main\n\nimport \"fmt\"\n\n// Define a struct\ntype Person struct {\n    Name    string\n    Age     int\n    IsAdult bool\n}\n\nfunc main() {\n    // Create an instance of the Person struct\n    p1 := Person{Name: \"Alice\", Age: 30, IsAdult: true}\n    fmt.Println(\"Person 1:\", p1)\n    fmt.Println(\"Person 1 Name:\", p1.Name)\n\n    // Create an instance with zero values (Age will be 0, IsAdult false)\n    p2 := Person{Name: \"Bob\"}\n    fmt.Println(\"Person 2:\", p2)\n\n    // Create a pointer to a struct\n    p3 := \u0026Person{Name: \"Charlie\", Age: 25, IsAdult: true}\n    fmt.Println(\"Person 3 (pointer):\", p3)\n    fmt.Println(\"Person 3 Age:\", p3.Age) // Go automatically dereferences for field access\n\n    // Anonymous struct (used when you need a struct only once)\n    dog := struct {\n        Name  string\n        Breed string\n    }{\n        Name:  \"Buddy\",\n        Breed: \"Golden Retriever\",\n    }\n    fmt.Println(\"Dog:\", dog)\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:23:13+05:30",
+      "updatedAt": "2025-08-02T18:23:13+05:30"
+    },
+    {
+      "id": "1754139219567642908",
+      "course_id": "1754124366",
+      "title": "Module 4: Pointers",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139204345",
+          "type": "text",
+          "content": "Description: Learn about pointers in Go, which hold the memory address of a variable. Understand the \u0026 (address-of) operator and the * (dereference) operator. Discuss when and why to use pointers, especially with structs and functions."
+        },
+        {
+          "id": "1754139208205",
+          "type": "code",
+          "content": "package main\n\nimport \"fmt\"\n\nfunc main() {\n    // Declare a variable\n    num := 10\n\n    // Declare a pointer to num\n    var ptr *int = \u0026num // ptr now holds the memory address of num\n\n    fmt.Println(\"Value of num:\", num)\n    fmt.Println(\"Address of num:\", \u0026num) // Address of num\n    fmt.Println(\"Value of ptr (address of num):\", ptr)\n    fmt.Println(\"Value pointed to by ptr:\", *ptr) // Dereference ptr to get the value\n\n    // Change value through pointer\n    *ptr = 20\n    fmt.Println(\"New value of num:\", num) // num is now 20\n\n    // Pointers with functions\n    x := 5\n    fmt.Println(\"Before increment, x =\", x)\n    increment(\u0026x) // Pass address of x\n    fmt.Println(\"After increment, x =\", x)\n\n    // Pointers to structs\n    type User struct {\n        Name string\n        Age  int\n    }\n\n    u := User{\"Alice\", 30}\n    uPtr := \u0026u\n\n    fmt.Println(\"User name via pointer:\", uPtr.Name) // Go automatically dereferences\n    uPtr.Age = 31 // Change value via pointer\n    fmt.Println(\"User age after change:\", u.Age)\n}\n\n// Function that takes a pointer and modifies the original value\nfunc increment(val *int) {\n    *val++ // Dereference and increment\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:23:39+05:30",
+      "updatedAt": "2025-08-02T18:23:39+05:30"
+    },
+    {
+      "id": "1754139279081289570",
+      "course_id": "1754124366",
+      "title": "Module 5: Interfaces",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139263686",
+          "type": "text",
+          "content": "Description: Learn about interfaces in Go, which define a set of method signatures. Understand how types implicitly implement interfaces by providing implementations for all methods in the interface. Explore the power of polymorphism with interfaces."
+        },
+        {
+          "id": "1754139266306",
+          "type": "code",
+          "content": "package main\n\nimport \"fmt\"\n\n// Define an interface\ntype Shape interface {\n    Area() float64\n    Perimeter() float64\n}\n\n// Define a struct Circle\ntype Circle struct {\n    Radius float64\n}\n\n// Implement Area method for Circle\nfunc (c Circle) Area() float64 {\n    return 3.14159 * c.Radius * c.Radius\n}\n\n// Implement Perimeter method for Circle\nfunc (c Circle) Perimeter() float64 {\n    return 2 * 3.14159 * c.Radius\n}\n\n// Define a struct Rectangle\ntype Rectangle struct {\n    Width  float64\n    Height float64\n}\n\n// Implement Area method for Rectangle\nfunc (r Rectangle) Area() float64 {\n    return r.Width * r.Height\n}\n\n// Implement Perimeter method for Rectangle\nfunc (r Rectangle) Perimeter() float64 {\n    return 2 * (r.Width + r.Height)\n}\n\n// Function that accepts any type implementing the Shape interface\nfunc printShapeInfo(s Shape) {\n    fmt.Printf(\"Shape Type: %T\\n\", s) // %T prints the type of the value\n    fmt.Printf(\"Area: %.2f\\n\", s.Area())\n    fmt.Printf(\"Perimeter: %.2f\\n\", s.Perimeter())\n    fmt.Println(\"---\")\n}\n\nfunc main() {\n    c := Circle{Radius: 5}\n    r := Rectangle{Width: 4, Height: 6}\n\n    printShapeInfo(c)\n    printShapeInfo(r)\n\n    // A slice of interfaces\n    shapes := []Shape{\n        Circle{Radius: 3},\n        Rectangle{Width: 2, Height: 8},\n    }\n\n    for _, shape := range shapes {\n        printShapeInfo(shape)\n    }\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:24:39+05:30",
+      "updatedAt": "2025-08-02T18:24:39+05:30"
+    },
+    {
+      "id": "1754139304302955025",
+      "course_id": "1754124366",
+      "title": "Topic: Empty Interface and Type Assertions",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139286861",
+          "type": "text",
+          "content": "Description: Understand the empty interface (interface{} or any), which can hold values of any type. Learn how to use type assertions to retrieve the underlying concrete type and value from an empty interface."
+        },
+        {
+          "id": "1754139293501",
+          "type": "code",
+          "content": "package main\n\nimport \"fmt\"\n\nfunc describe(i interface{}) {\n    fmt.Printf(\"(%v, %T)\\n\", i, i)\n}\n\nfunc main() {\n    var i interface{} // Declares a variable of empty interface type\n\n    i = 42\n    describe(i) // Output: (42, int)\n\n    i = \"hello\"\n    describe(i) // Output: (hello, string)\n\n    // Type assertion\n    s, ok := i.(string) // Assert that i holds a string\n    if ok {\n        fmt.Println(\"Value is a string:\", s)\n    } else {\n        fmt.Println(\"Value is not a string.\")\n    }\n\n    // Type assertion with switch\n    j := 10.5\n    switch v := j.(type) { // v will be the asserted type\n    case int:\n        fmt.Println(\"j is an int:\", v)\n    case float64:\n        fmt.Println(\"j is a float64:\", v)\n    case string:\n        fmt.Println(\"j is a string:\", v)\n    default:\n        fmt.Println(\"j is unknown type:\", v)\n    }\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:25:04+05:30",
+      "updatedAt": "2025-08-02T18:25:04+05:30"
+    },
+    {
+      "id": "1754139328829329483",
+      "course_id": "1754124366",
+      "title": "Module 6: Concurrency",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139315676",
+          "type": "text",
+          "content": "Description: Learn about goroutines, lightweight concurrent execution units managed by the Go runtime. Understand how to spawn new goroutines using the go keyword and how they enable concurrent programming."
+        },
+        {
+          "id": "1754139318663",
+          "type": "code",
+          "content": "package main\n\nimport (\n    \"fmt\"\n    \"time\"\n)\n\nfunc say(s string) {\n    for i := 0; i \u003c 3; i++ {\n        time.Sleep(100 * time.Millisecond) // Simulate some work\n        fmt.Println(s)\n    }\n}\n\nfunc main() {\n    go say(\"hello\") // Start a new goroutine\n    go say(\"world\") // Start another new goroutine\n\n    // The main goroutine continues to execute.\n    // We need to keep the main goroutine alive long enough for\n    // the other goroutines to finish.\n    time.Sleep(1 * time.Second)\n    fmt.Println(\"Main goroutine finished.\")\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:25:28+05:30",
+      "updatedAt": "2025-08-02T18:25:28+05:30"
+    },
+    {
+      "id": "1754139354283096647",
+      "course_id": "1754124366",
+      "title": "Topic: Channels",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139339452",
+          "type": "text",
+          "content": "Description: Explore channels, a typed conduit through which you can send and receive values with a goroutine. Understand how channels provide a safe way for goroutines to communicate and synchronize. Learn about buffered and unbuffered channels."
+        },
+        {
+          "id": "1754139341724",
+          "type": "code",
+          "content": "package main\n\nimport (\n    \"fmt\"\n    \"time\"\n)\n\nfunc sum(s []int, c chan int) {\n    sum := 0\n    for _, v := range s {\n        sum += v\n    }\n    c \u003c- sum // Send sum to channel c\n}\n\nfunc main() {\n    a := []int{7, 2, 8, -9, 4, 0}\n\n    c := make(chan int) // Create an unbuffered channel\n\n    go sum(a[:len(a)/2], c) // Sum first half\n    go sum(a[len(a)/2:], c) // Sum second half\n\n    x, y := \u003c-c, \u003c-c // Receive from channel c (blocking operation)\n\n    fmt.Println(x, y, x+y) // Output: 17 -5 12\n\n    // Buffered Channels\n    fmt.Println(\"\\n--- Buffered Channel Example ---\")\n    ch := make(chan int, 2) // Create a buffered channel with capacity 2\n    ch \u003c- 1\n    ch \u003c- 2\n    // ch \u003c- 3 // This would block because capacity is 2\n\n    fmt.Println(\u003c-ch) // Output: 1\n    fmt.Println(\u003c-ch) // Output: 2\n\n    // Closing Channels\n    fmt.Println(\"\\n--- Closing Channel Example ---\")\n    ping := make(chan string, 1)\n    pong := make(chan string, 1)\n\n    go func() {\n        ping \u003c- \"hello\"\n        close(ping) // Close the channel when done sending\n    }()\n\n    go func() {\n        msg := \u003c-ping\n        pong \u003c- msg + \" world\"\n        close(pong)\n    }()\n\n    for msg := range pong { // Loop until channel is closed and empty\n        fmt.Println(msg)\n    }\n}\n",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:25:54+05:30",
+      "updatedAt": "2025-08-02T18:25:54+05:30"
+    },
+    {
+      "id": "1754139376799655164",
+      "course_id": "1754124366",
+      "title": "Topic: Select Statement",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139361756",
+          "type": "text",
+          "content": "Description: Learn about the select statement, which allows a goroutine to wait on multiple communication operations. It's used to choose which of a set of possible send or receive operations will proceed."
+        },
+        {
+          "id": "1754139367590",
+          "type": "code",
+          "content": "package main\n\nimport (\n    \"fmt\"\n    \"time\"\n)\n\nfunc main() {\n    c1 := make(chan string)\n    c2 := make(chan string)\n\n    go func() {\n        time.Sleep(1 * time.Second)\n        c1 \u003c- \"one\"\n    }()\n    go func() {\n        time.Sleep(2 * time.Second)\n        c2 \u003c- \"two\"\n    }()\n\n    for i := 0; i \u003c 2; i++ {\n        select { // Wait on multiple channels\n        case msg1 := \u003c-c1:\n            fmt.Println(\"received\", msg1)\n        case msg2 := \u003c-c2:\n            fmt.Println(\"received\", msg2)\n        case \u003c-time.After(500 * time.Millisecond): // Timeout case\n            fmt.Println(\"timeout\")\n        // default: // Optional: runs if no other case is ready immediately\n        //     fmt.Println(\"no communication ready\")\n        }\n    }\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:26:16+05:30",
+      "updatedAt": "2025-08-02T18:26:16+05:30"
+    },
+    {
+      "id": "1754139404107479753",
+      "course_id": "1754124366",
+      "title": "Module 7: Error Handling",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139384740",
+          "type": "text",
+          "content": "Description: Understand Go's idiomatic approach to error handling using multiple return values, where the last return value is typically an error type. Learn how to check for errors and propagate them."
+        },
+        {
+          "id": "1754139390249",
+          "type": "code",
+          "content": "package main\n\nimport (\n    \"errors\"\n    \"fmt\"\n    \"strconv\"\n)\n\n// Function that might return an error\nfunc divide(a, b float64) (float64, error) {\n    if b == 0 {\n        return 0, errors.New(\"cannot divide by zero\") // Return an error\n    }\n    return a / b, nil // Return result and nil error on success\n}\n\n// Function that wraps and propagates errors\nfunc processInput(input string) (int, error) {\n    num, err := strconv.Atoi(input) // Convert string to int\n    if err != nil {\n        // Wrap the original error with more context\n        return 0, fmt.Errorf(\"failed to convert input '%s' to int: %w\", input, err)\n    }\n\n    if num \u003c 0 {\n        return 0, errors.New(\"input number cannot be negative\")\n    }\n\n    return num * 2, nil\n}\n\nfunc main() {\n    // Handling a successful division\n    result, err := divide(10, 2)\n    if err != nil {\n        fmt.Println(\"Error:\", err)\n    } else {\n        fmt.Println(\"Division result:\", result)\n    }\n\n    // Handling a division by zero error\n    result, err = divide(10, 0)\n    if err != nil {\n        fmt.Println(\"Error:\", err) // Output: Error: cannot divide by zero\n    } else {\n        fmt.Println(\"Division result:\", result)\n    }\n\n    // Processing valid input\n    processed, err := processInput(\"123\")\n    if err != nil {\n        fmt.Println(\"Error processing input:\", err)\n    } else {\n        fmt.Println(\"Processed result:\", processed)\n    }\n\n    // Processing invalid input (non-numeric)\n    processed, err = processInput(\"abc\")\n    if err != nil {\n        fmt.Println(\"Error processing input:\", err) // Output: Error processing input: failed to convert input 'abc' to int: strconv.Atoi: parsing \"abc\": invalid syntax\n        // Check if the underlying error is a specific type\n        var numErr *strconv.NumError\n        if errors.As(err, \u0026numErr) {\n            fmt.Println(\"Underlying error is a number conversion error.\")\n        }\n    }\n\n    // Processing invalid input (negative number)\n    processed, err = processInput(\"-5\")\n    if err != nil {\n        fmt.Println(\"Error processing input:\", err)\n    }\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:26:44+05:30",
+      "updatedAt": "2025-08-02T18:26:44+05:30"
+    },
+    {
+      "id": "1754139475929324743",
+      "course_id": "1754124366",
+      "title": "Module 8: Packages and Modules",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139411673",
+          "type": "text",
+          "content": "Description: Learn about Go's package system for organizing code. Understand how to declare packages, import them, and control visibility (exported vs. unexported identifiers)."
+        },
+        {
+          "id": "1754139417015",
+          "type": "code",
+          "content": "// (File: main.go)\npackage main\n\nimport (\n    \"fmt\"\n    \"myproject/greetings\" // Import a custom package\n)\n\nfunc main() {\n    fmt.Println(\"Hello from main package!\")\n    greetings.SayHello(\"Alice\") // Call an exported function from greetings package\n    // greetings.sayGoodbye(\"Bob\") // This would be a compile-time error (unexported)\n}",
+          "language": "go"
+        },
+        {
+          "id": "1754139448397",
+          "type": "code",
+          "content": "// File: greetings/greetings.go\npackage greetings // Declares this file belongs to the greetings package\n\nimport \"fmt\"\n\n// SayHello is an exported function (starts with a capital letter)\nfunc SayHello(name string) {\n    fmt.Printf(\"Greetings, %s!\\n\", name)\n}\n\n// sayGoodbye is an unexported function (starts with a lowercase letter)\nfunc sayGoodbye(name string) {\n    fmt.Printf(\"Goodbye, %s!\\n\", name)\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:27:55+05:30",
+      "updatedAt": "2025-08-02T18:27:55+05:30"
+    },
+    {
+      "id": "1754139551562665245",
+      "course_id": "1754124366",
+      "title": "Topic: Go Modules for Dependency Management",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139484872",
+          "type": "text",
+          "content": "Description: Understand Go Modules, the official dependency management system. Learn how to initialize a new module, add dependencies, and manage versions using go mod init, go get, go mod tidy, and go mod vendor."
+        },
+        {
+          "id": "1754139491969",
+          "type": "code",
+          "content": "// Example: go.mod file snippet\n// go.mod\nmodule myproject\n\ngo 1.22 // Specifies the Go version\n\nrequire (\n\trsc.io/quote v1.5.2 // Example dependency\n)",
+          "language": "go"
+        },
+        {
+          "id": "1754139518813",
+          "type": "code",
+          "content": "// Example Code (using an external module):\npackage main\n\nimport (\n    \"fmt\"\n    \"rsc.io/quote\" // Import the external module\n)\n\nfunc main() {\n    fmt.Println(quote.Hello()) // Call a function from the imported module\n}",
+          "language": "go"
+        },
+        {
+          "id": "1754139544402",
+          "type": "text",
+          "content": "To run this example:\n\n    Create a new directory: mkdir myproject \u0026\u0026 cd myproject\n\n    Initialize a new module: go mod init myproject\n\n    Create main.go with the code above.\n\n    Run go mod tidy to download dependencies.\n\n    Run go run main.go."
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:29:11+05:30",
+      "updatedAt": "2025-08-02T18:29:11+05:30"
+    },
+    {
+      "id": "1754139603905972699",
+      "course_id": "1754124366",
+      "title": "Module 9: Testing and Benchmarking",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139571072",
+          "type": "text",
+          "content": "Topic: Writing and Running Tests\n\nDescription: Learn how to write unit tests in Go using the testing package. Understand test functions (TestXxx), assertions, and how to run tests with go test.\n\nExample Code (File: math_test.go):"
+        },
+        {
+          "id": "1754139583579",
+          "type": "code",
+          "content": "package main\n\nimport \"testing\" // Import the testing package\n\n// TestAdd tests the add function\nfunc TestAdd(t *testing.T) {\n    result := add(2, 3)\n    expected := 5\n    if result != expected {\n        t.Errorf(\"add(2, 3) = %d; expected %d\", result, expected) // Report error\n    }\n}\n\n// TestSubtract tests the subtract function\nfunc TestSubtract(t *testing.T) {\n    result := subtract(10, 4)\n    expected := 6\n    if result != expected {\n        t.Errorf(\"subtract(10, 4) = %d; expected %d\", result, expected)\n    }\n}\n\n// Helper functions (typically in `main.go` or another `.go` file)\nfunc add(a, b int) int {\n    return a + b\n}\n\nfunc subtract(a, b int) int {\n    return a - b\n}",
+          "language": "go"
+        },
+        {
+          "id": "1754139599794",
+          "type": "text",
+          "content": "To run this example:\n\n    Create main.go (or math.go) with add and subtract functions.\n\n    Create math_test.go in the same directory.\n\n    Run go test."
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:30:03+05:30",
+      "updatedAt": "2025-08-02T18:30:03+05:30"
+    },
+    {
+      "id": "1754139660448685230",
+      "course_id": "1754124366",
+      "title": "Topic: Benchmarking",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139620504",
+          "type": "text",
+          "content": "Description: Learn how to write benchmarks in Go using the testing package to measure the performance of your code. Understand benchmark functions (BenchmarkXxx) and how to run them with go test -bench."
+        },
+        {
+          "id": "1754139627373",
+          "type": "code",
+          "content": "// Example Code (File: string_ops_test.go):\npackage main\n\nimport (\n    \"strings\"\n    \"testing\"\n)\n\n// Function to concatenate strings using + operator\nfunc concatStringsPlus(n int) string {\n    s := \"\"\n    for i := 0; i \u003c n; i++ {\n        s += \"a\"\n    }\n    return s\n}\n\n// Function to concatenate strings using strings.Builder\nfunc concatStringsBuilder(n int) string {\n    var b strings.Builder\n    for i := 0; i \u003c n; i++ {\n        b.WriteString(\"a\")\n    }\n    return b.String()\n}\n\n// Benchmark for string concatenation using +\nfunc BenchmarkConcatStringsPlus(b *testing.B) {\n    for i := 0; i \u003c b.N; i++ { // b.N is adjusted by the testing package\n        concatStringsPlus(1000)\n    }\n}\n\n// Benchmark for string concatenation using strings.Builder\nfunc BenchmarkConcatStringsBuilder(b *testing.B) {\n    for i := 0; i \u003c b.N; i++ {\n        concatStringsBuilder(1000)\n    }\n}",
+          "language": "go"
+        },
+        {
+          "id": "1754139656539",
+          "type": "text",
+          "content": "To run this example:\n\n    Create string_ops.go with concatStringsPlus and concatStringsBuilder functions.\n\n    Create string_ops_test.go in the same directory.\n\n    Run go test -bench=. (to run all benchmarks) or go test -bench=BenchmarkConcatStringsBuilder."
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:31:00+05:30",
+      "updatedAt": "2025-08-02T18:31:00+05:30"
+    },
+    {
+      "id": "1754139700915848436",
+      "course_id": "1754124366",
+      "title": "Module 10: Web Development Basics",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139668679",
+          "type": "text",
+          "content": "Description: Learn how to create a basic web server in Go using the net/http package. Understand concepts like HTTP handlers, routing, and serving static files."
+        },
+        {
+          "id": "1754139684610",
+          "type": "code",
+          "content": "package main\n\nimport (\n    \"fmt\"\n    \"net/http\"\n)\n\n// Handler for the root path \"/\"\nfunc helloHandler(w http.ResponseWriter, r *http.Request) {\n    fmt.Fprintf(w, \"Hello, web from Go! Path: %s\", r.URL.Path)\n}\n\n// Handler for a specific path \"/greet\"\nfunc greetHandler(w http.ResponseWriter, r *http.Request) {\n    name := r.URL.Query().Get(\"name\") // Get query parameter \"name\"\n    if name == \"\" {\n        name = \"Guest\"\n    }\n    fmt.Fprintf(w, \"Greetings, %s!\", name)\n}\n\nfunc main() {\n    // Register handlers for different paths\n    http.HandleFunc(\"/\", helloHandler)\n    http.HandleFunc(\"/greet\", greetHandler)\n\n    // Start the HTTP server on port 8080\n    fmt.Println(\"Server starting on :8080\")\n    if err := http.ListenAndServe(\":8080\", nil); err != nil {\n        fmt.Println(\"Server failed to start:\", err)\n    }\n}",
+          "language": "go"
+        },
+        {
+          "id": "1754139697091",
+          "type": "text",
+          "content": "To run this example:\n\n    Save the code as server.go.\n\n    Run go run server.go.\n\n    Open your browser and navigate to http://localhost:8080/ or http://localhost:8080/greet?name=GoUser."
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:31:40+05:30",
+      "updatedAt": "2025-08-02T18:31:40+05:30"
+    },
+    {
+      "id": "1754139730737414591",
+      "course_id": "1754124366",
+      "title": "Module 11: Advanced Concurrency",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139715826",
+          "type": "text",
+          "content": "Description: Learn about sync.Mutex for protecting shared resources from concurrent access. Understand how to use Lock() and Unlock() to ensure only one goroutine accesses a critical section at a time."
+        },
+        {
+          "id": "1754139718527",
+          "type": "code",
+          "content": "package main\n\nimport (\n    \"fmt\"\n    \"sync\"\n    \"time\"\n)\n\nvar (\n    counter int\n    mutex   sync.Mutex // Declare a mutex\n)\n\nfunc increment() {\n    mutex.Lock() // Acquire the lock\n    defer mutex.Unlock() // Ensure the lock is released when the function exits\n    counter++\n    fmt.Println(\"Counter:\", counter)\n}\n\nfunc main() {\n    var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines\n\n    for i := 0; i \u003c 5; i++ {\n        wg.Add(1) // Add one to the WaitGroup counter\n        go func() {\n            defer wg.Done() // Decrement the counter when goroutine finishes\n            for j := 0; j \u003c 1000; j++ {\n                increment()\n            }\n        }()\n    }\n\n    wg.Wait() // Wait for all goroutines to finish\n    fmt.Println(\"Final Counter Value:\", counter) // Should be 5000\n}\n",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:32:10+05:30",
+      "updatedAt": "2025-08-02T18:32:10+05:30"
+    },
+    {
+      "id": "1754139754057885727",
+      "course_id": "1754124366",
+      "title": "Topic: WaitGroup",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139738612",
+          "type": "text",
+          "content": "Description: Understand sync.WaitGroup, a mechanism to wait for a collection of goroutines to finish. Learn how to use Add(), Done(), and Wait() to coordinate goroutines."
+        },
+        {
+          "id": "1754139744722",
+          "type": "code",
+          "content": "package main\n\nimport (\n    \"fmt\"\n    \"sync\"\n    \"time\"\n)\n\nfunc worker(id int, wg *sync.WaitGroup) {\n    defer wg.Done() // Decrement the counter when this worker finishes\n    fmt.Printf(\"Worker %d starting...\\n\", id)\n    time.Sleep(time.Duration(id) * 100 * time.Millisecond) // Simulate work\n    fmt.Printf(\"Worker %d finished.\\n\", id)\n}\n\nfunc main() {\n    var wg sync.WaitGroup // Declare a WaitGroup\n\n    for i := 1; i \u003c= 5; i++ {\n        wg.Add(1) // Increment the counter for each goroutine\n        go worker(i, \u0026wg) // Pass the WaitGroup by pointer\n    }\n\n    wg.Wait() // Block until the counter is zero\n    fmt.Println(\"All workers have finished.\")\n}",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:32:34+05:30",
+      "updatedAt": "2025-08-02T18:32:34+05:30"
+    },
+    {
+      "id": "1754139782529209113",
+      "course_id": "1754124366",
+      "title": "Module 12: File I/O",
+      "content": "",
+      "codeBlocks": [
+        {
+          "id": "1754139761746",
+          "type": "text",
+          "content": "Description: Learn how to perform basic file operations in Go, including opening, creating, reading from, and writing to files using the os and io packages."
+        },
+        {
+          "id": "1754139770595",
+          "type": "code",
+          "content": "package main\n\nimport (\n    \"bufio\"\n    \"fmt\"\n    \"io/ioutil\" // For simpler file reading/writing\n    \"os\"\n)\n\nfunc main() {\n    // --- Writing to a file ---\n    data := []byte(\"Hello, Go File I/O!\\nThis is a new line.\")\n    err := ioutil.WriteFile(\"output.txt\", data, 0644) // 0644 is file permission\n    if err != nil {\n        fmt.Println(\"Error writing file:\", err)\n        return\n    }\n    fmt.Println(\"Successfully wrote to output.txt\")\n\n    // --- Reading from a file (simple) ---\n    readData, err := ioutil.ReadFile(\"output.txt\")\n    if err != nil {\n        fmt.Println(\"Error reading file:\", err)\n        return\n    }\n    fmt.Println(\"Content of output.txt:\\n\", string(readData))\n\n    // --- Appending to a file ---\n    f, err := os.OpenFile(\"output.txt\", os.O_APPEND|os.O_WRONLY, 0644) // Open for append and write-only\n    if err != nil {\n        fmt.Println(\"Error opening file for append:\", err)\n        return\n    }\n    defer f.Close() // Ensure the file is closed\n\n    if _, err := f.WriteString(\"\\nAppended new content.\"); err != nil {\n        fmt.Println(\"Error appending to file:\", err)\n    }\n    fmt.Println(\"Successfully appended to output.txt\")\n\n    // --- Reading line by line (using bufio) ---\n    file, err := os.Open(\"output.txt\")\n    if err != nil {\n        fmt.Println(\"Error opening file for reading:\", err)\n        return\n    }\n    defer file.Close()\n\n    fmt.Println(\"\\nReading output.txt line by line:\")\n    scanner := bufio.NewScanner(file)\n    for scanner.Scan() {\n        fmt.Println(scanner.Text())\n    }\n    if err := scanner.Err(); err != nil {\n        fmt.Println(\"Error reading lines:\", err)\n    }\n\n    // Clean up: remove the created file\n    // err = os.Remove(\"output.txt\")\n    // if err != nil {\n    //     fmt.Println(\"Error removing file:\", err)\n    // } else {\n    //     fmt.Println(\"output.txt removed.\")\n    // }\n}\n",
+          "language": "go"
+        }
+      ],
+      "order": 0,
+      "createdAt": "2025-08-02T18:33:02+05:30",
+      "updatedAt": "2025-08-02T18:33:02+05:30"
+    }
+  ],
+  "createdAt": "",
+  "updatedAt": "2025-08-02T18:33:02+05:30"
+}

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Menu, X, Check, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -45,90 +44,89 @@ export function CourseView({ course, selectedLesson, onLessonSelect }: CourseVie
   };
 
   return (
-    <div className="pt-16 flex min-h-screen bg-white dark:bg-slate-900">
+    <div className="flex h-screen bg-white dark:bg-slate-900">
       {/* Sidebar */}
       <div className={`
-        fixed lg:relative inset-y-0 left-0 z-40 w-80 bg-gray-50 dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 transform transition-transform duration-300 ease-in-out pt-16 lg:pt-0
+        fixed lg:relative inset-y-0 left-0 z-40 w-80 bg-gray-50 dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 transform transition-transform duration-300 ease-in-out
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
+        flex flex-col
       `}>
-        <div className="flex flex-col h-full">
-          {/* Sidebar Header */}
-          <div className="p-6 border-b border-gray-200 dark:border-slate-700">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              {course.title}
-            </h2>
-            <Badge variant={course.difficulty === 'Beginner' ? 'default' : 'destructive'}>
-              {course.difficulty}
-            </Badge>
-            <div className="mt-4">
-              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-2">
-                <span>Progress</span>
-                <span>{completedLessons.size}/{course.lessons.length}</span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
-                <div 
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(completedLessons.size / course.lessons.length) * 100}%` }}
-                ></div>
-              </div>
+        {/* Sidebar Header */}
+        <div className="p-6 border-b border-gray-200 dark:border-slate-700">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            {course.title}
+          </h2>
+          <Badge variant={course.difficulty === 'Beginner' ? 'default' : 'destructive'}>
+            {course.difficulty}
+          </Badge>
+          <div className="mt-4">
+            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-2">
+              <span>Progress</span>
+              <span>{completedLessons.size}/{course.lessons.length}</span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${(completedLessons.size / course.lessons.length) * 100}%` }}
+              ></div>
             </div>
           </div>
+        </div>
 
-          {/* Lessons List */}
-          <div className="flex-1 overflow-y-auto p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Lessons
-            </h3>
-            <div className="space-y-2">
-              {course.lessons.map((lesson, index) => (
-                <div
-                  key={lesson.id}
+        {/* Lessons List */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Lessons
+          </h3>
+          <div className="space-y-2">
+            {course.lessons.map((lesson, index) => (
+              <div
+                key={lesson.id}
+                className={`
+                  group flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200
+                  ${selectedLesson?.id === lesson.id 
+                    ? 'bg-blue-100 dark:bg-blue-900 border-l-4 border-blue-500' 
+                    : 'hover:bg-gray-100 dark:hover:bg-slate-700'
+                  }
+                `}
+                onClick={() => onLessonSelect(lesson)}
+              >
+                <div className="flex-1">
+                  <div className="flex items-center mb-1">
+                    <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <h4 className={`
+                      text-sm font-medium transition-colors
+                      ${selectedLesson?.id === lesson.id 
+                        ? 'text-blue-700 dark:text-blue-300' 
+                        : 'text-gray-900 dark:text-white'
+                      }
+                    `}>
+                      {lesson.title}
+                    </h4>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className={`
-                    group flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200
-                    ${selectedLesson?.id === lesson.id 
-                      ? 'bg-blue-100 dark:bg-blue-900 border-l-4 border-blue-500' 
-                      : 'hover:bg-gray-100 dark:hover:bg-slate-700'
+                    ml-2 w-6 h-6 p-0 rounded-full
+                    ${completedLessons.has(lesson.id) 
+                      ? 'bg-green-500 text-white hover:bg-green-600' 
+                      : 'bg-gray-200 dark:bg-slate-600 hover:bg-gray-300 dark:hover:bg-slate-500'
                     }
                   `}
-                  onClick={() => onLessonSelect(lesson)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleLessonComplete(lesson.id);
+                  }}
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center mb-1">
-                      <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                      <h4 className={`
-                        text-sm font-medium transition-colors
-                        ${selectedLesson?.id === lesson.id 
-                          ? 'text-blue-700 dark:text-blue-300' 
-                          : 'text-gray-900 dark:text-white'
-                        }
-                      `}>
-                        {lesson.title}
-                      </h4>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`
-                      ml-2 w-6 h-6 p-0 rounded-full
-                      ${completedLessons.has(lesson.id) 
-                        ? 'bg-green-500 text-white hover:bg-green-600' 
-                        : 'bg-gray-200 dark:bg-slate-600 hover:bg-gray-300 dark:hover:bg-slate-500'
-                      }
-                    `}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleLessonComplete(lesson.id);
-                    }}
-                  >
-                    {completedLessons.has(lesson.id) && <Check className="w-3 h-3" />}
-                  </Button>
-                </div>
-              ))}
-            </div>
+                  {completedLessons.has(lesson.id) && <Check className="w-3 h-3" />}
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -142,7 +140,7 @@ export function CourseView({ course, selectedLesson, onLessonSelect }: CourseVie
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col h-full">
         {/* Mobile Sidebar Toggle */}
         <div className="lg:hidden flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700">
           <Button

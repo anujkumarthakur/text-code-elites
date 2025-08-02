@@ -1,9 +1,10 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { CourseGrid } from '@/components/CourseGrid';
 import { CourseView } from '@/components/CourseView';
 import { Footer } from '@/components/Footer';
+import { dataService } from '@/services/dataService';
+import axios from 'axios';
 
 export interface ContentBlock {
   id: string;
@@ -14,6 +15,7 @@ export interface ContentBlock {
 
 export interface Lesson {
   id: string;
+  course_id: string;
   title: string;
   content: string;
   codeBlocks: ContentBlock[];
@@ -31,16 +33,39 @@ export interface Course {
   updatedAt?: string;
 }
 
-// Legacy interface for backward compatibility
-export interface CodeBlock {
-  id: string;
-  language: string;
-  code: string;
-}
-
 const Index = () => {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const fetchedCourses = await dataService.getCourses();
+        setCourses(fetchedCourses);
+        if (!selectedCourse && fetchedCourses.length > 0) {
+          setSelectedCourse(fetchedCourses[0]);
+        }
+        setFetchError(null); // Clear any previous errors
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+        if (axios.isAxiosError(error)) {
+          const errorMessage = error.response?.data?.error || error.message;
+          console.error("Axios error details:", error.response?.data || error.message);
+          setFetchError(`Failed to load courses: ${errorMessage}`);
+        } else {
+          setFetchError("An unexpected error occurred while loading courses.");
+        }
+        setCourses([]); // Ensure courses array is empty on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const handleCourseSelect = (course: Course) => {
     setSelectedCourse(course);
@@ -64,16 +89,24 @@ const Index = () => {
       />
       
       <main className="flex-1">
-        {!selectedCourse ? (
-          <div className="animate-fade-in">
-            <CourseGrid onCourseSelect={handleCourseSelect} />
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-2xl font-semibold">Loading...</div>
           </div>
-        ) : (
+        ) : fetchError ? (
+          <div className="flex items-center justify-center h-full text-red-500">
+            <p>{fetchError}</p>
+          </div>
+        ) : selectedCourse ? (
           <CourseView
             course={selectedCourse}
             selectedLesson={selectedLesson}
             onLessonSelect={handleLessonSelect}
           />
+        ) : (
+          <div className="animate-fade-in">
+            <CourseGrid courses={courses} onCourseSelect={handleCourseSelect} />
+          </div>
         )}
       </main>
       
